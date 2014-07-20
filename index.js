@@ -24,7 +24,8 @@ var latestId = '490565814072782848';
 
 var dummyNoise = 'It\'s so loud!';
 var dummyImage = '/thermometer-01.jpg';
-var dummyTemperature = '98º';
+var dummyTemperature = '75ºF';
+var dummyBT = '67';
 
 
 var postTweet = function(str){
@@ -35,8 +36,6 @@ var postTweet = function(str){
 };
 
 var postTweetImage = function(str){
-  //https://api.twitter.com/1.1/statuses/update_with_media.json
-  //Twitter.prototype.post = function(url, content, content_type, callback)
   twitterRestClient.statusesUpdateWithMedia({
     'status': str,
     'media[]': path.join(__dirname, dummyImage)
@@ -48,8 +47,7 @@ var postTweetImage = function(str){
       if(result){
         console.log(str);
       }
-    }
-);
+    });
 };
 
 var getMentions = function(callback){
@@ -73,54 +71,54 @@ var getMentions = function(callback){
 
 };
 
-
-var app = function() {
+var responseToGet = function(data){
   var noiseResponse = '\nThe noise level is currently: ' + dummyNoise;
   var photoResponse = '\nHere\'s a photo of the space: ';
-  var temperatureResponse = '\n The temperature is always perfect here!';
+  var peopleResponse = '\nBluetooth data indicates there are atleast: ' + dummyBT + ' people here.';
+  var temperatureResponse = '\n The temperature is always perfect here! ' + dummyTemperature;
+
+  for (var i = 0; i < data.length; i ++ ) {
+    wit.getWitForMessage(data[i], function(witResponse) {
+      var responseMsg = 'Hello @' + witResponse.message.user + ":";
+      if(witResponse.intent === 'general_conditions'){
+        responseMsg += noiseResponse;
+        responseMsg += temperatureResponse;
+        responseMsg += peopleResponse;
+        responseMsg += photoResponse;
+        postTweetImage(responseMsg);
+      }
+      else if(witResponse.intent === 'people'){
+        responseMsg += peopleResponse;
+        responseMsg += photoResponse;
+        postTweetImage(responseMsg);
+      }
+      else if(witResponse.intent === 'noise_level'){
+        responseMsg += noiseResponse;
+        postTweet(responseMsg);
+      }
+      else if(witResponse.intent === 'photo'){
+        responseMsg += photoResponse;
+        postTweetImage(responseMsg);
+      }
+      else if(witResponse.intent === 'temperature'){
+        responseMsg += temperatureResponse;
+        postTweet(responseMsg);
+      }
+    });
+  }
+};
+
+var app = function() {
 
   getMentions(function(data) {
-    for (var i = 0; i < data.length; i ++ ) {
-      wit.getWitForMessage(data[i], function(witResponse) {
-        var responseMsg = 'Hello @' + witResponse.message.user + ":";
-        if(witResponse.intent === 'general_conditions'){
-          responseMsg += noiseResponse;
-          responseMsg += temperatureResponse;
-          responseMsg += photoResponse;
-          postTweetImage(responseMsg);
-        }
-        else if(witResponse.intent === 'noise_level'){
-          responseMsg += noiseResponse;
-          postTweet(responseMsg);
-        }
-        else if(witResponse.intent === 'photo'){
-          responseMsg += photoResponse;
-          postTweetImage(responseMsg);
-        }
-        else if(witResponse.intent === 'temperature'){
-          responseMsg += temperatureResponse;
-          postTweet(responseMsg);
-        }
-      });
-    }
+    responseToGet(data);
   });
+
+  setInterval(function(){
+    getMentions(function(data){
+      responseToGet(data);
+    });
+  }, 61000);
 };
 
 app();
-
-//have access to variables on server
-//with results from server, post tweet
-  //construct tweet with username, text, photo?
-//get all at mentions
-//pass along new ones to wit
-//take result from wit, pass to neil
-//neil will send back tweet text or image
-//take this and tweet it at the mentioner
-
-
-
-// getMentions();
-
-// setInterval(function(){
-//   getMentions();
-// }, 61000);
