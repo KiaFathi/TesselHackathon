@@ -54,8 +54,6 @@ var getMentions = function(callback){
     if(data.length === 0){
       console.log('No New Mentions!');
     } else {
-      console.log('data');
-      console.log(data);
       latestId = data[0].id_str;
       for(var i = 0; i < data.length; i++){
         var currentTweet = data[i];
