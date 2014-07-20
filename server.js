@@ -1,4 +1,4 @@
-
+var app = require('./index.js').app;
 // server stuff
 var express = require('express');
 var fs = require('fs');
@@ -9,8 +9,13 @@ server.listen(port);
 
 
 // current states
-currentNoiseLevel = 'Not Set';
-currentImage = '/currentImage.jpg';
+var currentNoiseLevel = 'Not Set';
+var currentImage = '/thermometer-01.jpg';
+var currentTemperature;
+var currentBT;
+console.log(app);
+
+app(currentNoiseLevel, currentImage, currentTemperature, currentBT);
 
 
 // handle all get requests
